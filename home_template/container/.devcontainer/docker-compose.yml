@@ -1,0 +1,16 @@
+services:
+  container:
+    image: {{DOCKER_IMAGE}}
+    container_name: bioinfo-launcher
+    environment:
+      - DISABLE_AUTH=true
+      - CACHE_DIR=/home/user/cache
+      - PROJ_DIR=/home/user/proj
+      - GITHUB_PAT=
+    volumes:
+      - ../projects:/home/user/proj
+      - ../../cache:/home/user/cache
+    ports:
+      - 8080:8080
+    command: sleep infinity
+    init: true
