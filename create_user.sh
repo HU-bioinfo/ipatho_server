@@ -30,7 +30,7 @@ check_and_install_packages() {
 }
 
 # ---------- テンプレート ----------
-TEMPLATE_DIR=/etc/home_template
+TEMPLATE_DIR=/usr/local/sbin/ipatho_server/home_template
 check_home_template() {
     [[ -r $TEMPLATE_DIR ]] || { print_error "テンプレート $TEMPLATE_DIR が読めません"; exit 1; }
     for f in container/.devcontainer/{devcontainer.json,docker-compose.yml} .container_launcher.sh; do
