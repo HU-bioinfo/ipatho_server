@@ -3,7 +3,8 @@
     "dockerComposeFile": "./docker-compose.yml",
     "service": "container",
     "workspaceFolder": "/home/user/proj",
-    "forwardPorts": [8080],
+    "forwardPorts": [22],
+    "runArgs": ["--userns=keep-id"],
     "customizations": {
         "vscode": {
             "extensions": [

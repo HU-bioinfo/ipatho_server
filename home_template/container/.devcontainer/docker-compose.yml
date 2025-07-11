@@ -1,7 +1,7 @@
 services:
   container:
-    image: {{DOCKER_IMAGE}}
-    container_name: bioinfo-launcher
+    image: docker.io/hubioinfows/full_env:latest
+    container_name: bioinfolauncher-
     environment:
       - DISABLE_AUTH=true
       - CACHE_DIR=/home/user/cache

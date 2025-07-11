@@ -19,7 +19,7 @@ print_warning() { echo -e "\033[0;33m[WARNING]\033[0m $*"; }
 [[ $EUID -eq 0 ]] || { print_error "root で実行してください"; exit 1; }
 
 check_and_install_packages() {
-    local -a pkgs=(jq podman)
+    local -a pkgs=(yq podman)
     local -a missing=()
 
     for p in "${pkgs[@]}"; do command -v "$p" &>/dev/null || missing+=("$p"); done
@@ -27,6 +27,15 @@ check_and_install_packages() {
         print_info "不足パッケージをインストール: ${missing[*]}"
         apt update && apt install -y "${missing[@]}"
     fi
+}
+
+# ---------- テンプレート ----------
+TEMPLATE_DIR=/etc/home_template
+check_home_template() {
+    [[ -r $TEMPLATE_DIR ]] || { print_error "テンプレート $TEMPLATE_DIR が読めません"; exit 1; }
+    for f in container/.devcontainer/{devcontainer.json,docker-compose.yml} .container_launcher.sh; do
+        [[ -e $TEMPLATE_DIR/$f ]] || print_warning "必要ファイル欠落: $f"
+    done
 }
 
 # ---------- ユーザー入力 ----------
@@ -51,15 +60,6 @@ get_github_pat() {
     done
 }
 
-# ---------- テンプレート ----------
-TEMPLATE_DIR=/etc/home_template
-check_home_template() {
-    [[ -r $TEMPLATE_DIR ]] || { print_error "テンプレート $TEMPLATE_DIR が読めません"; exit 1; }
-    for f in container/.devcontainer/{devcontainer.json,docker-compose.yml} .container_launcher.sh; do
-        [[ -e $TEMPLATE_DIR/$f ]] || print_warning "推奨ファイル欠落: $f"
-    done
-}
-
 # ---------- セットアップ ----------
 create_user_with_home() {
     useradd -m -s /bin/bash "$username"
@@ -72,6 +72,8 @@ create_user_with_home() {
     print_info "PAT を docker‑compose.yml に挿入..."
     local compose="$home/container/.devcontainer/docker-compose.yml"
     [[ -f $compose ]] && sed -i "s/GITHUB_PAT=.*/GITHUB_PAT=$github_pat/" "$compose"
+    [[ -f $compose ]] && sed -i "s|^[[:space:]]*container_name:[[:space:]]*bioinfolauncher-.*|container_name: bioinfolauncher-$username|" "$compose"
+
 
     chown -R "$username:$username" "$home"
     chmod 700 "$home"
@@ -92,6 +94,10 @@ setup_ssh_shell() {
 
     # ユーザーのログインシェルを直接変更
     usermod -s "$launcher" "$username"
+    
+    # 起動スクリプトの権限を厳格化
+    chown root:root "$launcher"
+    chmod 755 "$launcher"
 
     print_success "ログインシェルを $launcher に設定しました"
 }
